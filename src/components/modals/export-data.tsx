@@ -3,6 +3,7 @@ import { Modal } from '@/components/common';
 import { TranslationKey, useTranslation } from '@/i18n';
 import { useSignalState, cx, useToggle } from '@/utils/common';
 import { DataType, EXPORT_FORMAT, ExportFormatType, exportData } from '@/utils/exporter';
+import { syncHomeTimelineToObsidian } from '@/utils/sync';
 
 type ExportDataModalProps<T> = {
   title: string;
@@ -23,6 +24,8 @@ export function ExportDataModal<T>({ title, table, show, onClose }: ExportDataMo
   const [includeMetadata, toggleIncludeMetadata] = useToggle(false);
   const [currentProgress, setCurrentProgress] = useSignalState(0);
   const [totalProgress, setTotalProgress] = useSignalState(0);
+  const [syncing, setSyncing] = useSignalState(false);
+  const [syncStatus, setSyncStatus] = useSignalState('');
 
   const selectedRows = table.getSelectedRowModel().rows;
 
@@ -82,6 +85,27 @@ export function ExportDataModal<T>({ title, table, show, onClose }: ExportDataMo
       headerTranslations,
     );
     setLoading(false);
+  };
+
+  const onSyncHomeTimeline = async () => {
+    setSyncing(true);
+    setSyncStatus('Syncing home timeline to Obsidian...');
+
+    try {
+      const result = await syncHomeTimelineToObsidian();
+      if (!result.total) {
+        setSyncStatus('No Home Timeline data captured.');
+        return;
+      }
+      const errorNote = result.errors.length ? ` Errors: ${result.errors.length}.` : '';
+      setSyncStatus(
+        `Sync complete. New: ${result.synced}, skipped: ${result.skipped}, files: ${result.files}.${errorNote}`,
+      );
+    } catch (error) {
+      setSyncStatus(`Sync failed: ${(error as Error).message}`);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   return (
@@ -145,12 +169,22 @@ export function ExportDataModal<T>({ title, table, show, onClose }: ExportDataMo
             {`${currentProgress}/${selectedRows.length}`}
           </span>
         </div>
+        {syncStatus ? (
+          <p class="text-sm leading-5 mt-3 text-base-content text-opacity-70">{syncStatus}</p>
+        ) : null}
       </div>
       {/* Action buttons. */}
       <div class="flex space-x-2">
         <span class="flex-grow" />
         <button class="btn" onClick={onClose}>
           {t('Cancel')}
+        </button>
+        <button
+          class={cx('btn btn-secondary', syncing && 'btn-disabled')}
+          onClick={onSyncHomeTimeline}
+        >
+          {syncing && <span class="loading loading-spinner" />}
+          Sync Home Timeline
         </button>
         <button class={cx('btn btn-primary', loading && 'btn-disabled')} onClick={onExport}>
           {loading && <span class="loading loading-spinner" />}

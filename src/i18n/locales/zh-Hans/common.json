@@ -33,6 +33,13 @@
   "JSON View": "JSON 数据预览",
   "Media View": "媒体预览",
 
+  "Sync": "同步",
+  "Auto Sync Home Timeline": "自动同步主页时间线",
+  "Automatically sync Home Timeline to Obsidian at regular intervals. Requires HomeTimelineModule enabled and Obsidian API token configured.": "定期自动将主页时间线同步到 Obsidian。需要启用 HomeTimelineModule 并配置 Obsidian API 令牌。",
+  "Sync Interval (minutes)": "同步间隔（分钟）",
+  "Last Sync": "上次同步",
+  "Never": "从未同步",
+
   "Bookmarks": "书签",
   "CommunityMembers": "社群成员",
   "CommunityTimeline": "社群时间线",

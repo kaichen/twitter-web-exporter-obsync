@@ -13,6 +13,7 @@ import logger from '@/utils/logger';
 import extensionManager, { Extension } from './extensions';
 import { Settings } from './settings';
 import { options } from './options';
+import { syncManager } from './sync-manager';
 
 export function App() {
   const { t } = useTranslation();
@@ -38,6 +39,9 @@ export function App() {
     });
 
     GM_registerMenuCommand(t('Open Control Panel'), toggleControlPanel);
+
+    // Initialize the sync scheduler.
+    syncManager.start();
 
     logger.debug('App useEffect executed');
   }, []);

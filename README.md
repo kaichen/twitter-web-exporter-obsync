@@ -1,28 +1,13 @@
-<p align="center">
-  <a href="https://github.com/prinsss/twitter-web-exporter">
-    <img alt="twitter-web-exporter" src="https://socialify.git.ci/prinsss/twitter-web-exporter/image?description=1&descriptionEditable=Export%20tweets%2C%20bookmarks%2C%20lists%20and%20much%20more%20from%20Twitter(X)%20web%20app.&font=Raleway&forks=0&issues=0&pattern=Plus&pulls=0&theme=Light&logo=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40tabler%2Ficons%403.19.0%2Ficons%2Foutline%2Fbrand-twitter.svg" />
-  </a>
-</p>
+# 这是 FORK https://github.com/prinsss/twitter-web-exporter 的自动同步到 Obsidian 版本
+---
 
-<p align="center">
-  <a href="https://github.com/prinsss/twitter-web-exporter/releases">
-    <img alt="UserScript" src="https://badgen.net/badge/userscript/available?color=green" />
-  </a>
-  <a href="https://github.com/prinsss/twitter-web-exporter/releases">
-    <img alt="Latest Release" src="https://badgen.net/github/release/prinsss/twitter-web-exporter" />
-  </a>
-  <a href="https://github.com/prinsss/twitter-web-exporter/blob/main/LICENSE">
-    <img alt="License" src="https://badgen.net/github/license/prinsss/twitter-web-exporter" />
-  </a>
-  <a href="https://github.com/prinsss/twitter-web-exporter">
-    <img alt="TypeScript" src="https://badgen.net/badge/icon/typescript?icon=typescript&label" />
-  </a>
-</p>
+使用这个你需要先安装篡改猴插件 https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo ，以及本地安装 Obsidian 并安装插件 https://github.com/coddingtonbear/obsidian-local-rest-api 。
 
-<p align="center">
-  English |
-  <a href="https://github.com/prinsss/twitter-web-exporter/blob/main/docs/README.zh-Hans.md">简体中文</a>
-</p>
+安装好 obsidian 插件之后，在设置里选择打开 http 以及拷贝 auth token。然后复制一份项目里的 .env.example 到 .env.local，把 token 填进去，跑 `bun install & bun run build` ，将构建在 dist 目录下的脚本拖到浏览器篡改猴界面里安装，之后正常浏览网页就会把推特数据同步到 Obsidian 的 Tweets 目录下。
+
+这个方案目前是 quick and dirty，不追求完美，只要能用。
+
+---
 
 ## Features
 

@@ -33,6 +33,13 @@
   "JSON View": "JSON View",
   "Media View": "Media View",
 
+  "Sync": "Sync",
+  "Auto Sync Home Timeline": "Auto Sync Home Timeline",
+  "Automatically sync Home Timeline to Obsidian at regular intervals. Requires HomeTimelineModule enabled and Obsidian API token configured.": "Automatically sync Home Timeline to Obsidian at regular intervals. Requires HomeTimelineModule enabled and Obsidian API token configured.",
+  "Sync Interval (minutes)": "Sync Interval (minutes)",
+  "Last Sync": "Last Sync",
+  "Never": "Never",
+
   "Bookmarks": "Bookmarks",
   "CommunityMembers": "CommunityMembers",
   "CommunityTimeline": "CommunityTimeline",

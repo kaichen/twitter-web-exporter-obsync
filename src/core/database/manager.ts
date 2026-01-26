@@ -96,6 +96,29 @@ export class DatabaseManager {
       .catch(this.logError);
   }
 
+  async extGetCapturesSince(extName: string, since: number) {
+    return this.captures()
+      .where('extension')
+      .equals(extName)
+      .and((capture) => capture.created_at > since)
+      .toArray()
+      .catch(this.logError);
+  }
+
+  async extGetCapturedTweetsSince(extName: string, since: number) {
+    const captures = await this.extGetCapturesSince(extName, since);
+    if (!captures || captures.length === 0) {
+      return [];
+    }
+    const tweetIds = captures.map((capture) => capture.data_key);
+    return this.tweets()
+      .where('rest_id')
+      .anyOf(tweetIds)
+      .filter((t) => this.filterEmptyData(t))
+      .toArray()
+      .catch(this.logError);
+  }
+
   /*
   |--------------------------------------------------------------------------
   | Write Methods for Extensions

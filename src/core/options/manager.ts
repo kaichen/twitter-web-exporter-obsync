@@ -16,6 +16,9 @@ export interface AppOptions {
   language?: string;
   dedicatedDbForAccounts?: boolean;
   version?: string;
+  homeTimelineAutoSyncEnabled?: boolean;
+  homeTimelineAutoSyncIntervalMinutes?: number;
+  homeTimelineLastSyncAt?: number | null;
 }
 
 export const DEFAULT_APP_OPTIONS: AppOptions = {
@@ -36,6 +39,9 @@ export const DEFAULT_APP_OPTIONS: AppOptions = {
   language: '',
   dedicatedDbForAccounts: false,
   version: packageJson.version,
+  homeTimelineAutoSyncEnabled: false,
+  homeTimelineAutoSyncIntervalMinutes: 15,
+  homeTimelineLastSyncAt: null,
 };
 
 // https://daisyui.com/docs/themes/

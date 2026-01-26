@@ -104,8 +104,12 @@ function extractExistingIds(content: string) {
 
 export async function syncHomeTimelineToObsidian(
   folder: string = OBSIDIAN_DEFAULT_FOLDER,
+  since: number | null = null,
 ): Promise<SyncSummary> {
-  const tweets = (await db.extGetCapturedTweets('HomeTimelineModule')) ?? [];
+  const tweets =
+    since !== null
+      ? ((await db.extGetCapturedTweetsSince('HomeTimelineModule', since)) ?? [])
+      : ((await db.extGetCapturedTweets('HomeTimelineModule')) ?? []);
   const summary: SyncSummary = {
     total: tweets.length,
     synced: 0,

@@ -14,8 +14,9 @@ import { GM_registerMenuCommand } from '$';
 import packageJson from '@/../package.json';
 import { Modal } from '@/components/common';
 import { useTranslation, detectBrowserLanguage, LANGUAGES_CONFIG, TranslationKey } from '@/i18n';
-import { capitalizeFirstLetter, cx, useToggle } from '@/utils/common';
+import { capitalizeFirstLetter, cx, formatDateTime, useToggle } from '@/utils/common';
 import { saveFile } from '@/utils/exporter';
+import dayjs from 'dayjs';
 
 import { db } from './database';
 import extensionManager from './extensions';
@@ -200,6 +201,67 @@ export function Settings() {
                 {t('Clear DB')}
               </button>
             </div>
+          </div>
+        </div>
+        {/* Sync settings. */}
+        <p class={styles.subtitle}>{t('Sync')}</p>
+        <div class={cx(styles.block, 'flex-col')}>
+          <label class={styles.item}>
+            <div class="flex items-center">
+              <span class="label-text whitespace-nowrap">{t('Auto Sync Home Timeline')}</span>
+              <a
+                class="tooltip tooltip-bottom ml-0.5 before:max-w-52"
+                data-tip={t(
+                  'Automatically sync Home Timeline to Obsidian at regular intervals. Requires HomeTimelineModule enabled and Obsidian API token configured.',
+                )}
+              >
+                <IconHelp size={20} />
+              </a>
+            </div>
+            <input
+              type="checkbox"
+              class="toggle toggle-primary"
+              checked={options.get('homeTimelineAutoSyncEnabled', false)}
+              disabled={
+                !extensionManager.getExtensions().find((e) => e.name === 'HomeTimelineModule')
+                  ?.enabled
+              }
+              onChange={(e) => {
+                options.set('homeTimelineAutoSyncEnabled', (e.target as HTMLInputElement)?.checked);
+              }}
+            />
+          </label>
+          <label class={styles.item}>
+            <span class="label-text whitespace-nowrap">{t('Sync Interval (minutes)')}</span>
+            <select
+              class="select select-xs"
+              disabled={!options.get('homeTimelineAutoSyncEnabled', false)}
+              onChange={(e) => {
+                const value = parseInt((e.target as HTMLSelectElement)?.value, 10);
+                options.set('homeTimelineAutoSyncIntervalMinutes', value);
+              }}
+            >
+              {[5, 15, 30].map((interval) => (
+                <option
+                  key={interval}
+                  value={interval}
+                  selected={options.get('homeTimelineAutoSyncIntervalMinutes', 15) === interval}
+                >
+                  {interval}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div class={styles.item}>
+            <span class="label-text whitespace-nowrap">{t('Last Sync')}</span>
+            <span class="text-xs opacity-70">
+              {options.get('homeTimelineLastSyncAt')
+                ? formatDateTime(
+                    dayjs(options.get('homeTimelineLastSyncAt')),
+                    options.get('dateTimeFormat'),
+                  )
+                : t('Never')}
+            </span>
           </div>
         </div>
         {/* Enable or disable modules. */}

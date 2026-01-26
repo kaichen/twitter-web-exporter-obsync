@@ -3,7 +3,7 @@
 
 使用这个你需要先安装篡改猴插件 https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo ，以及本地安装 Obsidian 并安装插件 https://github.com/coddingtonbear/obsidian-local-rest-api 。
 
-安装好 obsidian 插件之后，在设置里选择打开 http 以及拷贝 auth token。然后下载 Release 页面脚本
+安装好 obsidian 插件之后，在设置里选择打开 http 以及拷贝 auth token。然后下载 Release 页面脚本 https://github.com/kaichen/twitter-web-exporter-obsync/releases/download/v2026.1.26/twitter-web-exporter.user.js
 ，拖到浏览器篡改猴界面里安装，之后正常浏览网页就会把推特数据同步到 Obsidian 的 Tweets 目录下。第一次可以在导出界面点击同步将数据做第一次同步。
 
 这个方案目前是 quick and dirty，不追求完美，只要能用。

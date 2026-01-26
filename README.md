@@ -3,7 +3,7 @@
 
 使用这个你需要先安装篡改猴插件 https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo ，以及本地安装 Obsidian 并安装插件 https://github.com/coddingtonbear/obsidian-local-rest-api 。
 
-安装好 obsidian 插件之后，在设置里选择打开 http 以及拷贝 auth token。然后复制一份项目里的 .env.example 到 .env.local，把 token 填进去，跑 `bun install & bun run build` ，将构建在 dist 目录下的脚本拖到浏览器篡改猴界面里安装，之后正常浏览网页就会把推特数据同步到 Obsidian 的 Tweets 目录下。
+安装好 obsidian 插件之后，在设置里选择打开 http 以及拷贝 auth token。然后克隆这个代码仓库，复制一份项目里的 .env.example 到 .env.local，把 token 填进去，跑 `bun install & bun run build` 进行构建，将构建出来在 dist 目录下的脚本拖到浏览器篡改猴界面里安装，之后正常浏览网页就会把推特数据同步到 Obsidian 的 Tweets 目录下。第一次可以在导出界面点击同步将数据做第一次同步。
 
 这个方案目前是 quick and dirty，不追求完美，只要能用。
 

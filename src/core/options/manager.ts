@@ -19,6 +19,8 @@ export interface AppOptions {
   homeTimelineAutoSyncEnabled?: boolean;
   homeTimelineAutoSyncIntervalMinutes?: number;
   homeTimelineLastSyncAt?: number | null;
+  obsidianApiBaseUrl?: string;
+  obsidianApiToken?: string;
 }
 
 export const DEFAULT_APP_OPTIONS: AppOptions = {
@@ -42,6 +44,8 @@ export const DEFAULT_APP_OPTIONS: AppOptions = {
   homeTimelineAutoSyncEnabled: false,
   homeTimelineAutoSyncIntervalMinutes: 15,
   homeTimelineLastSyncAt: null,
+  obsidianApiBaseUrl: __OBSIDIAN_API_BASE_URL__ || 'http://127.0.0.1:27123',
+  obsidianApiToken: __OBSIDIAN_API_TOKEN__ || '',
 };
 
 // https://daisyui.com/docs/themes/

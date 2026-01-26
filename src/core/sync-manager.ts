@@ -3,7 +3,6 @@ import { options } from '@/core/options';
 import extensionManager from '@/core/extensions';
 import { db } from '@/core/database';
 import { syncHomeTimelineToObsidian } from '@/utils/sync';
-import { OBSIDIAN_API_TOKEN } from '@/utils/obsidian';
 import logger from '@/utils/logger';
 
 const MIN_INTERVAL_MINUTES = 5;
@@ -61,7 +60,8 @@ class SyncManager {
       return false;
     }
 
-    if (!OBSIDIAN_API_TOKEN) {
+    const token = options.get('obsidianApiToken') || __OBSIDIAN_API_TOKEN__ || '';
+    if (!token) {
       if (!this.tokenWarningLogged) {
         logger.warn('Auto-sync disabled: Obsidian API token not configured');
         this.tokenWarningLogged = true;

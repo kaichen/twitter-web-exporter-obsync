@@ -252,6 +252,30 @@ export function Settings() {
               ))}
             </select>
           </label>
+          <label class={styles.item}>
+            <span class="label-text whitespace-nowrap">{t('Obsidian API Host')}</span>
+            <input
+              type="text"
+              class="input input-bordered input-xs w-48"
+              disabled={!options.get('homeTimelineAutoSyncEnabled', false)}
+              value={options.get('obsidianApiBaseUrl', 'http://127.0.0.1:27123')}
+              onChange={(e) => {
+                options.set('obsidianApiBaseUrl', (e.target as HTMLInputElement)?.value);
+              }}
+            />
+          </label>
+          <label class={styles.item}>
+            <span class="label-text whitespace-nowrap">{t('Obsidian API Token')}</span>
+            <input
+              type="password"
+              class="input input-bordered input-xs w-48"
+              disabled={!options.get('homeTimelineAutoSyncEnabled', false)}
+              value={options.get('obsidianApiToken', '')}
+              onChange={(e) => {
+                options.set('obsidianApiToken', (e.target as HTMLInputElement)?.value);
+              }}
+            />
+          </label>
           <div class={styles.item}>
             <span class="label-text whitespace-nowrap">{t('Last Sync')}</span>
             <span class="text-xs opacity-70">

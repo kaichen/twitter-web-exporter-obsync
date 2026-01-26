@@ -1,9 +1,16 @@
 import { GM_xmlhttpRequest } from '$';
 import logger from '@/utils/logger';
+import { options } from '@/core/options';
 
-export const OBSIDIAN_API_BASE_URL = __OBSIDIAN_API_BASE_URL__;
-export const OBSIDIAN_API_TOKEN = __OBSIDIAN_API_TOKEN__;
 export const OBSIDIAN_DEFAULT_FOLDER = 'Tweets';
+
+function getObsidianApiBaseUrl(): string {
+  return options.get('obsidianApiBaseUrl') || __OBSIDIAN_API_BASE_URL__ || 'http://127.0.0.1:27123';
+}
+
+function getObsidianApiToken(): string {
+  return options.get('obsidianApiToken') || __OBSIDIAN_API_TOKEN__ || '';
+}
 
 export type ObsidianResponse = {
   status: number;
@@ -19,15 +26,17 @@ function encodeVaultPath(path: string) {
 }
 
 function assertToken() {
-  if (!OBSIDIAN_API_TOKEN) {
-    throw new Error('Missing OBSIDIAN_API_TOKEN. Set env var and rebuild.');
+  const token = getObsidianApiToken();
+  if (!token) {
+    throw new Error('Missing Obsidian API Token. Configure it in Settings.');
   }
 }
 
 function request(method: 'GET' | 'PUT', path: string, data?: string) {
   assertToken();
 
-  const baseUrl = OBSIDIAN_API_BASE_URL.replace(/\/$/, '');
+  const baseUrl = getObsidianApiBaseUrl().replace(/\/$/, '');
+  const token = getObsidianApiToken();
   const url = `${baseUrl}${path}`;
 
   return new Promise<ObsidianResponse>((resolve, reject) => {
@@ -35,7 +44,7 @@ function request(method: 'GET' | 'PUT', path: string, data?: string) {
       method,
       url,
       headers: {
-        Authorization: `Bearer ${OBSIDIAN_API_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         ...(data ? { 'Content-Type': 'text/plain; charset=utf-8' } : {}),
       },
       data,

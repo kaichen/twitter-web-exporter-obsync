@@ -37,6 +37,8 @@
   "Auto Sync Home Timeline": "Auto Sync Home Timeline",
   "Automatically sync Home Timeline to Obsidian at regular intervals. Requires HomeTimelineModule enabled and Obsidian API token configured.": "Automatically sync Home Timeline to Obsidian at regular intervals. Requires HomeTimelineModule enabled and Obsidian API token configured.",
   "Sync Interval (minutes)": "Sync Interval (minutes)",
+  "Obsidian API Host": "Obsidian API Host",
+  "Obsidian API Token": "Obsidian API Token",
   "Last Sync": "Last Sync",
   "Never": "Never",
 

@@ -18,7 +18,7 @@
 - 👥 Export list members and subscribers
 - 🌪️ Export tweets from home timeline and list timeline
 - 🔍 Export search results
-- ✉️ Export direct messages
+- ✉️ Export direct messages (now broken, see [#116](https://github.com/prinsss/twitter-web-exporter/issues/116))
 - 📦 Download images and videos from tweets in bulk at original size
 - 🚀 No developer account or API key required
 - 🛠️ Ship as a UserScript and everything is done in your browser
@@ -72,7 +72,7 @@ Basically, **the script "sees" what you see on the page**. If you can't see the 
 
 Data on the web page is loaded dynamically, which means the script can't access the data until it is loaded. You need to keep scrolling down to load more data. Make sure that all data is loaded before exporting.
 
-The export process is not automated (without the help of 3rd party tools). It relies on human interaction to trigger the data fetching process of the Twitter web app. The script itself does not send any request to Twitter API.
+The export process is not automated (without the help of [3rd party tools](https://github.com/prinsss/twitter-web-exporter/issues/120)). It relies on human interaction to trigger the data fetching process of the Twitter web app. The script itself does not send any request to Twitter API.
 
 The script does not rely on the official Twitter API and thus does not have the same rate limit. However, the Twitter web app does have its own limit. If you hit that rate limit, try again after a few minutes.
 
@@ -92,7 +92,7 @@ A. See [Content-Security-Policy (CSP) Issues #19](https://github.com/prinsss/twi
 A. The script can only export data that is loaded by the Twitter web app. Since the data is lazy-loaded, you need to keep scrolling down to load more data. For long lists, you may need to scroll down to the bottom of the page to make sure that all data is loaded before exporting.
 
 **Q. Can the exporting process be automated?** <br>
-A. No. At least not without the help of 3rd party tools like auto scrolling.
+A. No. At least not without the help of 3rd party tools like auto scrolling. See [#120](https://github.com/prinsss/twitter-web-exporter/issues/120) for community solutions.
 
 **Q. Do I need a developer account?** <br>
 A. No. The script does not send any request to Twitter API.

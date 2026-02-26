@@ -6,6 +6,7 @@ import {
   TimelineInstructions,
   TimelineTweet,
   Tweet,
+  WithSortIndex,
 } from '@/types';
 import { extractTimelineTweet, isTimelineEntryProfileGrid } from '@/utils/api';
 import logger from '@/utils/logger';
@@ -36,7 +37,7 @@ export const UserMediaInterceptor: Interceptor = (req, res, ext) => {
     const json: UserMediaResponse = JSON.parse(res.responseText);
     const instructions = json.data.user.result.timeline.timeline.instructions;
 
-    const newData: Tweet[] = [];
+    const newData: WithSortIndex<Tweet>[] = [];
 
     // There are two types of instructions: "TimelineAddEntries" and "TimelineAddToModule".
     // For "Media", the "TimelineAddEntries" instruction initializes "profile-grid" module.
@@ -51,7 +52,8 @@ export const UserMediaInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntryProfileGrid(entry)) {
         const tweetsInSearchGrid = entry.content.items
           .map((i) => extractTimelineTweet(i.item.itemContent))
-          .filter((t): t is Tweet => !!t);
+          .filter((t): t is Tweet => !!t)
+          .map((t) => ({ data: t, sortIndex: entry.sortIndex }));
 
         newData.push(...tweetsInSearchGrid);
       }
@@ -65,7 +67,9 @@ export const UserMediaInterceptor: Interceptor = (req, res, ext) => {
     if (timelineAddToModuleInstruction) {
       const tweetsInProfileGrid = timelineAddToModuleInstruction.moduleItems
         .map((i) => extractTimelineTweet(i.item.itemContent))
-        .filter((t): t is Tweet => !!t);
+        .filter((t): t is Tweet => !!t)
+        // No sortIndex available from TimelineAddToModule.
+        .map((t) => ({ data: t, sortIndex: undefined }));
 
       newData.push(...tweetsInProfileGrid);
     }

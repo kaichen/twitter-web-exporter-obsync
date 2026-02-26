@@ -3,8 +3,8 @@ import Dexie, { KeyPaths } from 'dexie';
 import { exportDB, importInto } from 'dexie-export-import';
 
 import packageJson from '@/../package.json';
-import { Capture, Tweet, User } from '@/types';
-import { extractTweetMedia } from '@/utils/api';
+import { Capture, Tweet, User, WithSortIndex } from '@/types';
+import { compareSortIndex, extractTweetMedia } from '@/utils/api';
 import { parseTwitterDateTime } from '@/utils/common';
 import { migration_20250609 } from '@/utils/migration';
 import logger from '@/utils/logger';
@@ -12,7 +12,7 @@ import { ExtensionType } from '../extensions';
 import { options } from '../options';
 
 const DB_NAME = packageJson.name;
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 declare global {
   interface Window {
@@ -73,13 +73,21 @@ export class DatabaseManager {
     if (!captures) {
       return [];
     }
-    const tweetIds = captures.map((capture) => capture.data_key);
-    return this.tweets()
+
+    const tweetIds = this.sortCaptures(captures).map((capture) => capture.data_key);
+    const tweets = await this.tweets()
       .where('rest_id')
       .anyOf(tweetIds)
       .filter((t) => this.filterEmptyData(t))
       .toArray()
       .catch(this.logError);
+    if (!tweets) {
+      return [];
+    }
+
+    // Sort again based on capture order since IndexDB query with "anyOf" does not obey that order.
+    const map = new Map(tweets.map((t) => [t.rest_id, t]));
+    return tweetIds.map((id) => map.get(id)).filter((t): t is Tweet => !!t);
   }
 
   async extGetCapturedUsers(extName: string) {
@@ -87,13 +95,21 @@ export class DatabaseManager {
     if (!captures) {
       return [];
     }
-    const userIds = captures.map((capture) => capture.data_key);
-    return this.users()
+
+    const userIds = this.sortCaptures(captures).map((capture) => capture.data_key);
+    const users = await this.users()
       .where('rest_id')
       .anyOf(userIds)
-      .filter((t) => this.filterEmptyData(t))
+      .filter((u) => this.filterEmptyData(u))
       .toArray()
       .catch(this.logError);
+    if (!users) {
+      return [];
+    }
+
+    // Sort again based on capture order since IndexDB query with "anyOf" does not obey that order.
+    const map = new Map(users.map((u) => [u.rest_id, u]));
+    return userIds.map((id) => map.get(id)).filter((u): u is User => !!u);
   }
 
   async extGetCapturesSince(extName: string, since: number) {
@@ -110,13 +126,20 @@ export class DatabaseManager {
     if (!captures || captures.length === 0) {
       return [];
     }
-    const tweetIds = captures.map((capture) => capture.data_key);
-    return this.tweets()
+
+    const tweetIds = this.sortCaptures(captures).map((capture) => capture.data_key);
+    const tweets = await this.tweets()
       .where('rest_id')
       .anyOf(tweetIds)
       .filter((t) => this.filterEmptyData(t))
       .toArray()
       .catch(this.logError);
+    if (!tweets) {
+      return [];
+    }
+
+    const map = new Map(tweets.map((t) => [t.rest_id, t]));
+    return tweetIds.map((id) => map.get(id)).filter((t): t is Tweet => !!t);
   }
 
   /*
@@ -125,28 +148,34 @@ export class DatabaseManager {
   |--------------------------------------------------------------------------
   */
 
-  async extAddTweets(extName: string, tweets: Tweet[]) {
-    await this.upsertTweets(tweets);
+  async extAddTweets(extName: string, items: WithSortIndex<Tweet>[]) {
+    const sorted = this.sortItems(items);
+    await this.upsertTweets(sorted.map((item) => item.data));
     await this.upsertCaptures(
-      tweets.map((tweet) => ({
-        id: `${extName}-${tweet.rest_id}`,
+      sorted.map((item, i) => ({
+        id: `${extName}-${item.data.rest_id}`,
         extension: extName,
         type: ExtensionType.TWEET,
-        data_key: tweet.rest_id,
-        created_at: Date.now(),
+        data_key: item.data.rest_id,
+        // Here we add a small increment to make sure that the original order is preserved
+        // when falling back to created_at sorting in case of missing sortIndex.
+        created_at: Date.now() + i,
+        sort_index: item.sortIndex,
       })),
     );
   }
 
-  async extAddUsers(extName: string, users: User[]) {
-    await this.upsertUsers(users);
+  async extAddUsers(extName: string, items: WithSortIndex<User>[]) {
+    const sorted = this.sortItems(items);
+    await this.upsertUsers(sorted.map((item) => item.data));
     await this.upsertCaptures(
-      users.map((user) => ({
-        id: `${extName}-${user.rest_id}`,
+      sorted.map((item, i) => ({
+        id: `${extName}-${item.data.rest_id}`,
         extension: extName,
         type: ExtensionType.USER,
-        data_key: user.rest_id,
-        created_at: Date.now(),
+        data_key: item.data.rest_id,
+        created_at: Date.now() + i,
+        sort_index: item.sortIndex,
       })),
     );
   }
@@ -211,7 +240,7 @@ export class DatabaseManager {
         const data: Tweet[] = tweets.map((tweet) => ({
           ...tweet,
           twe_private_fields: {
-            created_at: +parseTwitterDateTime(tweet.legacy.created_at),
+            created_at: +parseTwitterDateTime(tweet.legacy?.created_at),
             updated_at: Date.now(),
             media_count: extractTweetMedia(tweet).length,
           },
@@ -228,7 +257,7 @@ export class DatabaseManager {
         const data: User[] = users.map((user) => ({
           ...user,
           twe_private_fields: {
-            created_at: +parseTwitterDateTime(user.core.created_at),
+            created_at: +parseTwitterDateTime(user.core?.created_at),
             updated_at: Date.now(),
           },
         }));
@@ -309,17 +338,26 @@ export class DatabaseManager {
     ];
 
     // Indexes for the "captures" table.
-    const captureIndexPaths: KeyPaths<Capture>[] = ['id', 'extension', 'type', 'created_at'];
+    const captureIndexPaths: KeyPaths<Capture>[] = [
+      'id',
+      'extension',
+      'type',
+      'created_at',
+      'sort_index',
+    ];
 
     // Take care of database schemas and versioning.
     // See: https://dexie.org/docs/Tutorial/Design#database-versioning
     try {
+      // Per Dexie docs, a version with an upgrader attached must never be altered.
+      // You need to keep versions that have an upgrader as long as there are code out there
+      // that use a version lower than the upgrader-attached version.
       this.db
-        .version(DB_VERSION)
+        .version(2)
         .stores({
           tweets: tweetIndexPaths.join(','),
           users: userIndexPaths.join(','),
-          captures: captureIndexPaths.join(','),
+          captures: 'id,extension,type,created_at',
         })
         .upgrade(async (tx) => {
           logger.info('Upgrading database schema...');
@@ -327,11 +365,31 @@ export class DatabaseManager {
           logger.info('Database upgraded');
         });
 
+      // v3: adds sort_index index to captures for timeline ordering.
+      this.db.version(DB_VERSION).stores({
+        tweets: tweetIndexPaths.join(','),
+        users: userIndexPaths.join(','),
+        captures: captureIndexPaths.join(','),
+      });
+
       await this.db.open();
       logger.info(`Database connected: ${this.db.name}`);
     } catch (error) {
       this.logError(error);
     }
+  }
+
+  private sortItems<T>(items: WithSortIndex<T>[]): WithSortIndex<T>[] {
+    return [...items].sort((a, b) => compareSortIndex(a.sortIndex, b.sortIndex));
+  }
+
+  private sortCaptures(captures: Capture[]): Capture[] {
+    return [...captures].sort((a, b) => {
+      if (a.sort_index && b.sort_index) return compareSortIndex(a.sort_index, b.sort_index);
+      if (a.sort_index) return -1;
+      if (b.sort_index) return 1;
+      return b.created_at - a.created_at;
+    });
   }
 
   /*

@@ -10,6 +10,7 @@ import {
   TimelineTwitterList,
   Tweet,
   User,
+  WithSortIndex,
 } from '@/types';
 import {
   extractTimelineTweet,
@@ -46,7 +47,7 @@ export const SearchTimelineInterceptor: Interceptor = (req, res, ext) => {
 
     // Parse tweets in search results.
     // Currently, only "Top", "Latest" and "Media" are supported. "People" and "Lists" are ignored.
-    const newTweets: Tweet[] = [];
+    const newTweets: WithSortIndex<Tweet>[] = [];
     const newUsers: User[] = [];
     const newLists: List[] = [];
 
@@ -75,7 +76,7 @@ export const SearchTimelineInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntryTweet(entry)) {
         const tweet = extractTimelineTweet(entry.content.itemContent);
         if (tweet) {
-          newTweets.push(tweet);
+          newTweets.push({ data: tweet, sortIndex: entry.sortIndex });
         }
       }
 
@@ -83,7 +84,8 @@ export const SearchTimelineInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntrySearchGrid(entry)) {
         const tweetsInSearchGrid = entry.content.items
           .map((i) => extractTimelineTweet(i.item.itemContent))
-          .filter((t): t is Tweet => !!t);
+          .filter((t): t is Tweet => !!t)
+          .map((t) => ({ data: t, sortIndex: entry.sortIndex }));
 
         newTweets.push(...tweetsInSearchGrid);
       }
@@ -110,7 +112,9 @@ export const SearchTimelineInterceptor: Interceptor = (req, res, ext) => {
       const tweets = items
         .filter((i): i is TimelineTweet => i.__typename === 'TimelineTweet')
         .map((t) => extractTimelineTweet(t))
-        .filter((t): t is Tweet => !!t);
+        .filter((t): t is Tweet => !!t)
+        // No sortIndex available from TimelineAddToModule.
+        .map((t) => ({ data: t, sortIndex: undefined }));
 
       newTweets.push(...tweets);
 

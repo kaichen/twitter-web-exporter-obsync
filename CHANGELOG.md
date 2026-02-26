@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0](https://github.com/prinsss/twitter-web-exporter/compare/v1.3.1..v1.4.0) - 2026-02-25
+
+### ⛰️  Features
+
+- *(i18n)* Add Traditional Chinese - ([377b47b](https://github.com/prinsss/twitter-web-exporter/commit/377b47bbd67ef9aa04e713e09c66cec6dda66a08))
+- *(i18n)* Add Japanese - ([9bac530](https://github.com/prinsss/twitter-web-exporter/commit/9bac530703cacdfbe6bd78d93857894a79f38dbf))
+- *(locales)* Indonesian language support - ([48ebe55](https://github.com/prinsss/twitter-web-exporter/commit/48ebe55d97424494c4128cd054a1324ff06b43d4))
+- Sort timeline items by sortIndex - ([6fe9af5](https://github.com/prinsss/twitter-web-exporter/commit/6fe9af53f57ddf534f5bb22f092b7b5613b8b67f))
+- Add RetweetersModule - ([432a1d3](https://github.com/prinsss/twitter-web-exporter/commit/432a1d377271841c4e1ba5db7a0e50e04b8570e0))
+
+### 🐛 Bug Fixes
+
+- *(i18n)* Correct wrong keys - ([d12150f](https://github.com/prinsss/twitter-web-exporter/commit/d12150f069e01b5f0cbe7092ad9945a6f9040680))
+- Html and csv exporter exporting null values as string - ([e8d7529](https://github.com/prinsss/twitter-web-exporter/commit/e8d752948b3bcb6dedfc237193970e0248937e02))
+- Add more optional chaining - ([58b4ab3](https://github.com/prinsss/twitter-web-exporter/commit/58b4ab3f64ad41248b44041489ff3ea511a7fa97))
+
+### 📚 Documentation
+
+- Update README - ([c60545c](https://github.com/prinsss/twitter-web-exporter/commit/c60545c447a29315f85a40eda9ae908b7e339c45))
+
 ## [1.3.1](https://github.com/prinsss/twitter-web-exporter/compare/v1.3.0..v1.3.1) - 2025-12-15
 
 ### ⛰️  Features

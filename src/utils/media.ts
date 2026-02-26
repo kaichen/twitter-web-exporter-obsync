@@ -21,11 +21,11 @@ export const patterns: Record<string, { description: string; extractor: PatternE
   },
   screen_name: {
     description: 'The username of tweet author',
-    extractor: (tweet) => tweet.core.user_results.result.core.screen_name,
+    extractor: (tweet) => tweet.core?.user_results?.result?.core?.screen_name ?? 'N/A',
   },
   name: {
     description: 'The profile name of tweet author',
-    extractor: (tweet) => tweet.core.user_results.result.core.name,
+    extractor: (tweet) => tweet.core?.user_results?.result?.core?.name ?? 'N/A',
   },
   index: {
     description: 'The media index in tweet (start from 0)',
@@ -37,11 +37,11 @@ export const patterns: Record<string, { description: string; extractor: PatternE
   },
   date: {
     description: 'The post date in YYYYMMDD format',
-    extractor: (tweet) => parseTwitterDateTime(tweet.legacy.created_at).format('YYYYMMDD'),
+    extractor: (tweet) => parseTwitterDateTime(tweet.legacy?.created_at).format('YYYYMMDD'),
   },
   time: {
     description: 'The post time in HHmmss format',
-    extractor: (tweet) => parseTwitterDateTime(tweet.legacy.created_at).format('HHmmss'),
+    extractor: (tweet) => parseTwitterDateTime(tweet.legacy?.created_at).format('HHmmss'),
   },
   type: {
     description: 'The media type (photo/video/animated_gif)',
@@ -69,7 +69,7 @@ export function extractMedia(
     // For tweets, download media files with custom filenames.
     // NOTE: __typename is undefined in TweetWithVisibilityResults.
     if (item.__typename === 'Tweet' || (typeof item.__typename === 'undefined' && 'core' in item)) {
-      if (!includeRetweets && item.legacy.retweeted_status_result) {
+      if (!includeRetweets && item.legacy?.retweeted_status_result) {
         continue;
       }
 
@@ -92,7 +92,7 @@ export function extractMedia(
     if (item.__typename === 'User') {
       if (item.avatar.image_url) {
         const ext = getFileExtensionFromUrl(item.avatar.image_url);
-        const filename = `${item.core.screen_name}_profile_image.${ext}`;
+        const filename = `${item.core?.screen_name}_profile_image.${ext}`;
         gallery.set(filename, {
           filename,
           type: 'photo',
@@ -100,9 +100,9 @@ export function extractMedia(
         });
       }
 
-      if (item.legacy.profile_banner_url) {
+      if (item.legacy?.profile_banner_url) {
         const ext = getFileExtensionFromUrl(item.legacy.profile_banner_url);
-        const filename = `${item.core.screen_name}_profile_banner.${ext}`;
+        const filename = `${item.core?.screen_name}_profile_banner.${ext}`;
         gallery.set(filename, {
           filename,
           type: 'photo',

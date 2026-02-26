@@ -6,6 +6,7 @@ import {
   TimelinePinEntryInstruction,
   TimelineTweet,
   Tweet,
+  WithSortIndex,
 } from '@/types';
 import {
   extractTimelineTweet,
@@ -41,7 +42,7 @@ export const UserTweetsInterceptor: Interceptor = (req, res, ext) => {
     const json: UserTweetsResponse = JSON.parse(res.responseText);
     const instructions = json.data.user.result.timeline.timeline.instructions;
 
-    const newData: Tweet[] = [];
+    const newData: WithSortIndex<Tweet>[] = [];
 
     // The pinned tweet.
     const timelinePinEntryInstruction = instructions.find(
@@ -51,7 +52,7 @@ export const UserTweetsInterceptor: Interceptor = (req, res, ext) => {
     if (timelinePinEntryInstruction) {
       const tweet = extractTimelineTweet(timelinePinEntryInstruction.entry.content.itemContent);
       if (tweet) {
-        newData.push(tweet);
+        newData.push({ data: tweet, sortIndex: timelinePinEntryInstruction.entry.sortIndex });
       }
     }
 
@@ -68,7 +69,7 @@ export const UserTweetsInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntryTweet(entry)) {
         const tweet = extractTimelineTweet(entry.content.itemContent);
         if (tweet) {
-          newData.push(tweet);
+          newData.push({ data: tweet, sortIndex: entry.sortIndex });
         }
       }
 
@@ -76,7 +77,10 @@ export const UserTweetsInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntryProfileConversation(entry)) {
         const tweetsInConversation = entry.content.items
           .map((i) => extractTimelineTweet(i.item.itemContent))
-          .filter((t): t is Tweet => !!t);
+          .filter((t): t is Tweet => !!t)
+          // All tweets in the same conversation share the parent entry's sortIndex,
+          // since they don't have their own sortIndex.
+          .map((t) => ({ data: t, sortIndex: entry.sortIndex }));
 
         newData.push(...tweetsInConversation);
       }

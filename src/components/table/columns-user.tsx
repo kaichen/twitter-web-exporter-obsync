@@ -69,8 +69,8 @@ export const columns = [
         class="w-52 break-words"
         dangerouslySetInnerHTML={{
           __html: strEntitiesToHTML(
-            info.row.original.legacy.description || 'N/A',
-            info.row.original.legacy.entities?.description.urls,
+            info.row.original.legacy?.description || 'N/A',
+            info.row.original.legacy?.entities?.description?.urls ?? [],
           ),
         }}
       />
@@ -143,8 +143,8 @@ export const columns = [
       <p
         dangerouslySetInnerHTML={{
           __html: strEntitiesToHTML(
-            info.row.original.legacy.url || 'N/A',
-            info.row.original.legacy.entities?.url?.urls,
+            info.row.original.legacy?.url || 'N/A',
+            info.row.original.legacy?.entities?.url?.urls ?? [],
           ),
         }}
       />
@@ -189,14 +189,14 @@ export const columns = [
     header: () => <Trans i18nKey="Protected" />,
     cell: (info) => <p>{info.getValue() ? 'YES' : 'NO'}</p>,
   }),
-  columnHelper.accessor((row) => +parseTwitterDateTime(row.core.created_at), {
+  columnHelper.accessor((row) => +parseTwitterDateTime(row.core?.created_at), {
     id: 'created_at',
     meta: {
       exportKey: 'created_at',
       exportHeader: 'Created At',
       exportValue: (row) =>
         formatDateTime(
-          parseTwitterDateTime(row.original.core.created_at),
+          parseTwitterDateTime(row.original.core?.created_at),
           options.get('dateTimeFormat'),
         ),
     },

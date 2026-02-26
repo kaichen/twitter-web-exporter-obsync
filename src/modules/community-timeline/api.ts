@@ -6,6 +6,7 @@ import {
   TimelineInstructions,
   TimelineTweet,
   Tweet,
+  WithSortIndex,
 } from '@/types';
 import {
   extractTimelineTweet,
@@ -47,7 +48,7 @@ export const CommunityTimelineInterceptor: Interceptor = (req, res, ext) => {
     const timeline = result.ranked_community_timeline ?? result.community_media_timeline;
     const instructions = timeline.timeline.instructions;
 
-    const newData: Tweet[] = [];
+    const newData: WithSortIndex<Tweet>[] = [];
 
     // #region Community Tweets
     const timelineAddEntriesInstruction = instructions.find(
@@ -61,14 +62,15 @@ export const CommunityTimelineInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntryItem<TimelineTweet>(entry)) {
         const tweet = extractTimelineTweet(entry.content.itemContent);
         if (tweet) {
-          newData.push(tweet);
+          newData.push({ data: tweet, sortIndex: entry.sortIndex });
         }
       }
       // For media timeline, tweets are sometimes inside the "CommunitiesGrid" entry.
       if (isTimelineEntryCommunitiesGrid(entry)) {
         const tweetsInGrid = entry.content.items
           .map((i) => extractTimelineTweet(i.item.itemContent))
-          .filter((t): t is Tweet => !!t);
+          .filter((t): t is Tweet => !!t)
+          .map((t) => ({ data: t, sortIndex: entry.sortIndex }));
 
         newData.push(...tweetsInGrid);
       }
@@ -82,7 +84,9 @@ export const CommunityTimelineInterceptor: Interceptor = (req, res, ext) => {
     if (timelineAddToModuleInstruction?.moduleItems) {
       const tweets = timelineAddToModuleInstruction.moduleItems
         .map((i) => extractTimelineTweet(i.item.itemContent))
-        .filter((t): t is Tweet => !!t);
+        .filter((t): t is Tweet => !!t)
+        // No sortIndex available from TimelineAddToModule.
+        .map((t) => ({ data: t, sortIndex: undefined }));
 
       newData.push(...tweets);
     }

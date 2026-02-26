@@ -19,7 +19,7 @@ export const UserDetailInterceptor: Interceptor = (req, res, ext) => {
 
   try {
     const json: UserDetailResponse = JSON.parse(res.responseText);
-    const newData = [json.data.user.result];
+    const newData = [{ data: json.data.user.result }];
 
     // Add captured data to the database.
     db.extAddUsers(ext.name, newData);

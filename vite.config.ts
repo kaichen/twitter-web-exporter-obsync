@@ -67,10 +67,6 @@ export default defineConfig(({ mode }) => {
           grant: ['unsafeWindow', 'GM_xmlhttpRequest'],
           connect: ['127.0.0.1', 'localhost'],
           'run-at': 'document-start',
-          updateURL:
-            'https://github.com/prinsss/twitter-web-exporter/releases/latest/download/twitter-web-exporter.user.js',
-          downloadURL:
-            'https://github.com/prinsss/twitter-web-exporter/releases/latest/download/twitter-web-exporter.user.js',
           require: [
             'https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js',
             'https://cdn.jsdelivr.net/npm/dexie@4.0.11/dist/dexie.min.js',

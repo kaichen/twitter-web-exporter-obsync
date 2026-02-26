@@ -53,7 +53,7 @@
   "ListMembers": "ListMembers",
   "ListSubscribers": "ListSubscribers",
   "ListTimeline": "ListTimeline",
-  "RetweetersModule": "RetweetersModule",
+  "Retweeters": "Retweeters",
   "RuntimeLogs": "RuntimeLogs",
   "SearchTimeline": "SearchTimeline",
   "TweetDetail": "TweetDetail",

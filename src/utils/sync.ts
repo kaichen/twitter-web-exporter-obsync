@@ -49,7 +49,16 @@ function isOkStatus(status: number) {
   return status >= 200 && status < 300;
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function toObsidianTweet(tweet: Tweet): ObsidianTweet {
+  const author = tweet.core?.user_results?.result?.core;
+  if (!author?.screen_name || !author?.name) {
+    throw new Error(`Tweet ${tweet.rest_id} missing author profile fields`);
+  }
+
   const createdAt = parseTwitterDateTime(tweet.legacy.created_at);
   const createdAtIso = createdAt.isValid() ? createdAt.toISOString() : new Date(0).toISOString();
   const retweeted = extractRetweetedTweet(tweet);
@@ -58,8 +67,8 @@ function toObsidianTweet(tweet: Tweet): ObsidianTweet {
   return {
     id: tweet.rest_id,
     created_at: createdAtIso,
-    screen_name: tweet.core.user_results.result.core.screen_name,
-    name: tweet.core.user_results.result.core.name,
+    screen_name: author.screen_name,
+    name: author.name,
     text: extractTweetFullText(tweet),
     url: getTweetURL(tweet),
     media: extractTweetMedia(tweet).map((media) => getMediaOriginalUrl(media)),
@@ -125,10 +134,14 @@ export async function syncHomeTimelineToObsidian(
   const buckets = new Map<string, ObsidianTweet[]>();
 
   for (const tweet of tweets) {
-    const dateKey = formatDateTime(parseTwitterDateTime(tweet.legacy.created_at), 'YYYY-MM-DD');
-    const items = buckets.get(dateKey) ?? [];
-    items.push(toObsidianTweet(tweet));
-    buckets.set(dateKey, items);
+    try {
+      const dateKey = formatDateTime(parseTwitterDateTime(tweet.legacy.created_at), 'YYYY-MM-DD');
+      const items = buckets.get(dateKey) ?? [];
+      items.push(toObsidianTweet(tweet));
+      buckets.set(dateKey, items);
+    } catch (error) {
+      summary.errors.push(`Tweet ${tweet.rest_id}: ${errorMessage(error)}`);
+    }
   }
 
   for (const [dateKey, items] of buckets) {
@@ -145,7 +158,7 @@ export async function syncHomeTimelineToObsidian(
         throw new Error(`GET ${path} failed (${response.status})`);
       }
     } catch (error) {
-      summary.errors.push((error as Error).message);
+      summary.errors.push(errorMessage(error));
       continue;
     }
 
@@ -168,7 +181,7 @@ export async function syncHomeTimelineToObsidian(
       summary.synced += newItems.length;
       summary.files += 1;
     } catch (error) {
-      summary.errors.push((error as Error).message);
+      summary.errors.push(errorMessage(error));
     }
   }
 

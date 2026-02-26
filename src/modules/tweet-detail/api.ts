@@ -6,6 +6,7 @@ import {
   TimelineInstructions,
   TimelineTweet,
   Tweet,
+  WithSortIndex,
 } from '@/types';
 import {
   extractTimelineTweet,
@@ -59,7 +60,7 @@ export const TweetDetailInterceptor: Interceptor = (req, res, ext) => {
         .timeline.instructions;
     }
 
-    const newData: Tweet[] = [];
+    const newData: WithSortIndex<Tweet>[] = [];
 
     const timelineAddEntriesInstruction = instructions.find(
       (i) => i.type === 'TimelineAddEntries',
@@ -73,20 +74,23 @@ export const TweetDetailInterceptor: Interceptor = (req, res, ext) => {
       if (isTimelineEntryTweet(entry)) {
         const tweet = extractTimelineTweet(entry.content.itemContent);
         if (tweet) {
-          newData.push(tweet);
+          newData.push({ data: tweet, sortIndex: entry.sortIndex });
         }
       }
 
       // The conversation thread (only for TweetDetail).
       if (isTweetDetail && isTimelineEntryConversationThread(entry)) {
         // Be careful about the "conversationthread-{id}-cursor-showmore-{cid}" item.
-        const tweetsInConversation = entry.content.items.map((i) => {
-          if (i.entryId.includes('-tweet-')) {
-            return extractTimelineTweet(i.item.itemContent);
-          }
-        });
+        const tweetsInConversation = entry.content.items
+          .map((i) => {
+            if (i.entryId.includes('-tweet-')) {
+              return extractTimelineTweet(i.item.itemContent);
+            }
+          })
+          .filter((t): t is Tweet => !!t)
+          .map((t) => ({ data: t, sortIndex: entry.sortIndex }));
 
-        newData.push(...tweetsInConversation.filter((t): t is Tweet => !!t));
+        newData.push(...tweetsInConversation);
       }
     }
 
@@ -98,7 +102,9 @@ export const TweetDetailInterceptor: Interceptor = (req, res, ext) => {
     if (timelineAddToModuleInstruction) {
       const tweetsInConversation = timelineAddToModuleInstruction.moduleItems
         .map((i) => extractTimelineTweet(i.item.itemContent))
-        .filter((t): t is Tweet => !!t);
+        .filter((t): t is Tweet => !!t)
+        // No sortIndex available from TimelineAddToModule.
+        .map((t) => ({ data: t, sortIndex: undefined }));
 
       newData.push(...tweetsInConversation);
     }

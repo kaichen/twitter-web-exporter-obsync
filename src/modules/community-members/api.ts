@@ -35,7 +35,9 @@ export const CommunityMembersInterceptor: Interceptor = (req, res, ext) => {
     const result = json.data.communityResults.result;
     const newData = (result.members_slice ?? result.moderators_slice).items_results
       .map((item) => item.result)
-      .filter((user): user is User => user.__typename === 'User');
+      .filter((user): user is User => user.__typename === 'User')
+      // No sortIndex available from CommunityMembers.
+      .map((user) => ({ data: user }));
 
     // Add captured data to the database.
     db.extAddUsers(ext.name, newData);

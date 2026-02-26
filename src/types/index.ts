@@ -146,6 +146,11 @@ export interface TimelineTimelineModule<T = ItemContentUnion> {
 }
 
 /**
+ * Wraps extracted data with its timeline sort index.
+ */
+export type WithSortIndex<T> = { data: T; sortIndex?: string };
+
+/**
  * Represents a piece of data captured by an extension.
  */
 export interface Capture {
@@ -159,4 +164,6 @@ export interface Capture {
   data_key: string;
   /** Timestamp when the data was captured. */
   created_at: number;
+  /** Timeline sort index returned by Twitter. Higher values appear first. */
+  sort_index?: string;
 }

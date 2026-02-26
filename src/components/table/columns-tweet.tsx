@@ -66,14 +66,14 @@ export const columns = [
     header: () => <Trans i18nKey="ID" />,
     cell: (info) => <p class="w-20 break-all font-mono text-xs">{info.getValue()}</p>,
   }),
-  columnHelper.accessor((row) => +parseTwitterDateTime(row.legacy.created_at), {
+  columnHelper.accessor((row) => +parseTwitterDateTime(row.legacy?.created_at), {
     id: 'created_at',
     meta: {
       exportKey: 'created_at',
       exportHeader: 'Date',
       exportValue: (row) =>
         formatDateTime(
-          parseTwitterDateTime(row.original.legacy.created_at),
+          parseTwitterDateTime(row.original.legacy?.created_at),
           options.get('dateTimeFormat'),
         ),
     },
@@ -98,9 +98,9 @@ export const columns = [
         <p
           class="w-60 whitespace-pre-wrap"
           dangerouslySetInnerHTML={{
-            __html: strEntitiesToHTML(info.row.original.legacy.full_text, [
-              ...info.row.original.legacy.entities.urls,
-              ...(info.row.original.legacy.entities.media ?? []),
+            __html: strEntitiesToHTML(info.row.original.legacy?.full_text, [
+              ...(info.row.original.legacy?.entities.urls ?? []),
+              ...(info.row.original.legacy?.entities.media ?? []),
             ]),
           }}
         />
@@ -149,7 +149,7 @@ export const columns = [
         <a
           class="link"
           target="_blank"
-          href={getUserURL(info.row.original.core.user_results.result)}
+          href={getUserURL(info.row.original.core?.user_results?.result)}
         >
           @{info.getValue()}
         </a>
@@ -184,12 +184,12 @@ export const columns = [
     meta: {
       exportKey: 'in_reply_to',
       exportHeader: 'Replying To',
-      exportValue: (row) => row.original.legacy.in_reply_to_status_id_str,
+      exportValue: (row) => row.original.legacy?.in_reply_to_status_id_str,
     },
     header: () => <Trans i18nKey="Replying To" />,
     cell: (info) => (
       <p class="whitespace-pre">
-        {info.row.original.legacy.in_reply_to_status_id_str ? (
+        {info.row.original.legacy?.in_reply_to_status_id_str ? (
           <a class="link" target="_blank" href={getInReplyToTweetURL(info.row.original)}>
             @{info.getValue()}
           </a>

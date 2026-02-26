@@ -13,8 +13,20 @@ import {
   Tweet,
   TweetUnion,
   User,
+  WithSortIndex,
 } from '@/types';
 import logger from './logger';
+
+/**
+ * Compare two sortIndex strings for descending sort.
+ * The bigger the sortIndex, the earlier the entry appears in the timeline.
+ */
+export function compareSortIndex(a: string | undefined, b: string | undefined): number {
+  if (!a || !b) return 0;
+  const ai = BigInt(a);
+  const bi = BigInt(b);
+  return bi > ai ? 1 : bi < ai ? -1 : 0;
+}
 
 /**
  * A generic function to extract data from the API response.
@@ -22,7 +34,6 @@ import logger from './logger';
  * @param response The XHR object.
  * @param extractInstructionsFromJson Get "TimelineAddEntries" instructions from the JSON object.
  * @param extractDataFromTimelineEntry Get user/tweet data from the timeline entry.
- * @param onNewDataReceived Returns the extracted data.
  */
 export function extractDataFromResponse<
   R,
@@ -32,7 +43,7 @@ export function extractDataFromResponse<
   response: XMLHttpRequest,
   extractInstructionsFromJson: (json: R) => TimelineInstructions,
   extractDataFromTimelineEntry: (entry: TimelineEntry<P, TimelineTimelineItem<P>>) => T | null,
-): T[] {
+): WithSortIndex<T>[] {
   const json: R = JSON.parse(response.responseText);
   const instructions = extractInstructionsFromJson(json);
 
@@ -43,13 +54,19 @@ export function extractDataFromResponse<
   // The "TimelineAddEntries" instruction may not exist in some cases.
   const timelineAddEntriesInstructionEntries = timelineAddEntriesInstruction?.entries ?? [];
 
-  const newData: T[] = [];
+  // After an update, Twitter's API may return array items in random order.
+  // Here we sort them by `sortIndex` descending to ensure the correct order in the timeline.
+  const sortedEntries = [...timelineAddEntriesInstructionEntries].sort((a, b) =>
+    compareSortIndex(a.sortIndex, b.sortIndex),
+  );
 
-  for (const entry of timelineAddEntriesInstructionEntries) {
+  const newData: WithSortIndex<T>[] = [];
+
+  for (const entry of sortedEntries) {
     if (isTimelineEntryItem<P>(entry)) {
       const data = extractDataFromTimelineEntry(entry);
       if (data) {
-        newData.push(data);
+        newData.push({ data, sortIndex: entry.sortIndex });
       }
     }
   }
@@ -231,7 +248,7 @@ export function extractTweetUnion(tweet: TweetUnion): Tweet | null {
 }
 
 export function extractRetweetedTweet(tweet: Tweet): Tweet | null {
-  if (tweet.legacy.retweeted_status_result?.result) {
+  if (tweet.legacy?.retweeted_status_result?.result) {
     return extractTweetUnion(tweet.legacy.retweeted_status_result.result);
   }
 
@@ -247,7 +264,7 @@ export function extractQuotedTweet(tweet: Tweet): Tweet | null {
 }
 
 export function extractTweetUserScreenName(tweet: Tweet): string {
-  return tweet.core.user_results.result.core.screen_name;
+  return tweet.core?.user_results?.result?.core?.screen_name ?? '';
 }
 
 export function extractTweetMedia(tweet: Tweet): Media[] {
@@ -256,11 +273,11 @@ export function extractTweetMedia(tweet: Tweet): Media[] {
   const realTweet = extractRetweetedTweet(tweet) ?? tweet;
 
   // Prefer `extended_entities` over `entities` for media list.
-  if (realTweet.legacy.extended_entities?.media) {
+  if (realTweet.legacy?.extended_entities?.media) {
     return realTweet.legacy.extended_entities.media;
   }
 
-  return realTweet.legacy.entities.media ?? [];
+  return realTweet.legacy?.entities?.media ?? [];
 }
 
 export function extractTweetMediaTags(tweet: Tweet): Tag[] {
@@ -281,7 +298,7 @@ export function extractTweetMediaTags(tweet: Tweet): Tag[] {
 }
 
 export function extractTweetFullText(tweet: Tweet): string {
-  return tweet.note_tweet?.note_tweet_results.result.text ?? tweet.legacy.full_text;
+  return tweet.note_tweet?.note_tweet_results.result.text ?? tweet.legacy?.full_text;
 }
 
 export function filterEmptyTweet(tweet: Tweet): Tweet | null {
@@ -361,13 +378,13 @@ export function getFileExtensionFromUrl(url: string): string {
 }
 
 export function getTweetURL(tweet: Tweet): string {
-  return `https://twitter.com/${extractTweetUserScreenName(tweet)}/status/${tweet.legacy.id_str}`;
+  return `https://twitter.com/${extractTweetUserScreenName(tweet)}/status/${tweet.legacy?.id_str}`;
 }
 
 export function getUserURL(user: User | string): string {
-  return `https://twitter.com/${typeof user === 'string' ? user : user.core.screen_name}`;
+  return `https://twitter.com/${typeof user === 'string' ? user : user.core?.screen_name}`;
 }
 
 export function getInReplyToTweetURL(tweet: Tweet): string {
-  return `https://twitter.com/${tweet.legacy.in_reply_to_screen_name}/status/${tweet.legacy.in_reply_to_status_id_str}`;
+  return `https://twitter.com/${tweet.legacy?.in_reply_to_screen_name}/status/${tweet.legacy?.in_reply_to_status_id_str}`;
 }

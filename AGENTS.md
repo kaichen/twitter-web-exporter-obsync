@@ -13,11 +13,16 @@
 - `eslint.config.js`, `tailwind.config.js`: linting and styling.
 
 ## Build, Test, and Development Commands
-- `npm run dev`: start Vite dev server for local development.
-- `npm run build`: typecheck (`tsc`) and build the userscript bundle.
-- `npm run preview`: preview the production build.
-- `npm run lint`: run ESLint (TypeScript + Prettier rules).
-- `npm run changelog`: generate `CHANGELOG.md` via git-cliff.
+- `bun run dev`: start Vite dev server for local development.
+- `bun run build`: typecheck (`tsc`) and build the userscript bundle.
+- `bun run preview`: preview the production build.
+- `bun run lint`: run ESLint (TypeScript + Prettier rules).
+- `bun run changelog`: generate `CHANGELOG.md` via git-cliff.
+
+## Package Manager
+- Use `bun` as the default and primary package manager for this repository.
+- Use `bun install` for dependency installation and keep `bun.lock` as the source-of-truth lockfile.
+- Prefer `bun run <script>` for all package scripts unless a task explicitly requires another toolchain.
 
 ## Coding Style & Naming Conventions
 - Language: TypeScript with Preact JSX (`.tsx` for UI).

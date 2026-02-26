@@ -153,7 +153,12 @@ export async function htmlExporter(data: DataType[], translations: Record<string
         link.textContent = value;
         td.appendChild(link);
       } else {
-        td.textContent = typeof value === 'string' ? value : JSON.stringify(row[exportKey]);
+        td.textContent =
+          value == null
+            ? 'N/A'
+            : typeof value === 'string'
+              ? value
+              : JSON.stringify(row[exportKey]);
       }
 
       tr.appendChild(td);
@@ -184,6 +189,11 @@ export async function csvExporter(data: DataType[]) {
   for (const row of data) {
     const values = headers.map((header) => {
       const value = row[header];
+
+      if (value == null) {
+        return '';
+      }
+
       if (typeof value === 'string') {
         return csvEscapeStr(value);
       }
@@ -192,7 +202,7 @@ export async function csvExporter(data: DataType[]) {
         return csvEscapeStr(JSON.stringify(value));
       }
 
-      return value;
+      return String(value);
     });
     content += values.join(',');
     content += '\n';

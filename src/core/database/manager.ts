@@ -215,6 +215,75 @@ export class DatabaseManager {
     logger.info('Database cleared');
   }
 
+  async deleteDataOlderThan(days: number) {
+    if (!Number.isInteger(days) || days < 1) {
+      return this.logError(new Error(`Invalid days value for deleteDataOlderThan: ${days}`));
+    }
+
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    try {
+      const summary = await this.db.transaction(
+        'rw',
+        this.captures(),
+        this.tweets(),
+        this.users(),
+        async () => {
+          const deletedCaptures = await this.captures().where('created_at').below(cutoff).delete();
+          const remainingCaptures = await this.captures().toArray();
+          const remainingTweetIds = new Set<string>();
+          const remainingUserIds = new Set<string>();
+
+          for (const capture of remainingCaptures) {
+            if (capture.type === ExtensionType.TWEET) {
+              remainingTweetIds.add(capture.data_key);
+            }
+
+            if (capture.type === ExtensionType.USER) {
+              remainingUserIds.add(capture.data_key);
+            }
+          }
+
+          const deletedTweets =
+            remainingTweetIds.size === 0
+              ? await this.tweets()
+                  .count()
+                  .then(async (count) => {
+                    await this.tweets().clear();
+                    return count;
+                  })
+              : await this.tweets()
+                  .filter((tweet) => !remainingTweetIds.has(tweet.rest_id))
+                  .delete();
+
+          const deletedUsers =
+            remainingUserIds.size === 0
+              ? await this.users()
+                  .count()
+                  .then(async (count) => {
+                    await this.users().clear();
+                    return count;
+                  })
+              : await this.users()
+                  .filter((user) => !remainingUserIds.has(user.rest_id))
+                  .delete();
+
+          return { deletedCaptures, deletedTweets, deletedUsers };
+        },
+      );
+
+      logger.info(
+        `Deleted data older than ${days} days (cutoff: ${new Date(cutoff).toISOString()}): ` +
+          `${summary.deletedCaptures} captures, ${summary.deletedTweets} tweets, ${summary.deletedUsers} users`,
+      );
+
+      return summary;
+    } catch (error) {
+      this.logError(error);
+      return null;
+    }
+  }
+
   async count() {
     try {
       return {

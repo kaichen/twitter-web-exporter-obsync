@@ -5,6 +5,7 @@ import {
   IconSettings,
   IconBrandGithubFilled,
   IconHelp,
+  IconClockX,
   IconDatabaseExport,
   IconTrashX,
   IconReportAnalytics,
@@ -26,6 +27,7 @@ export function Settings() {
   const { t, i18n } = useTranslation();
 
   const currentTheme = useSignal(options.get('theme'));
+  const cleanupDays = useSignal(30);
   const [showSettings, toggleSettings] = useToggle(false);
 
   const styles = {
@@ -199,6 +201,38 @@ export function Settings() {
               >
                 <IconTrashX size={20} />
                 {t('Clear DB')}
+              </button>
+            </div>
+          </div>
+          <div class={styles.item}>
+            <span class="label-text whitespace-nowrap">{t('Days')}</span>
+            <div class="flex items-center">
+              <input
+                type="number"
+                min="1"
+                class="input input-bordered input-xs w-20 mr-2"
+                value={cleanupDays.value}
+                onChange={(e) => {
+                  const value = Number.parseInt((e.target as HTMLInputElement)?.value, 10);
+                  cleanupDays.value = Number.isNaN(value) ? 1 : Math.max(1, value);
+                }}
+              />
+              <button
+                class="btn btn-xs btn-warning"
+                onClick={async () => {
+                  if (
+                    confirm(
+                      t('Are you sure to delete data captured more than {{days}} days ago?', {
+                        days: cleanupDays.value,
+                      }),
+                    )
+                  ) {
+                    await db.deleteDataOlderThan(cleanupDays.value);
+                  }
+                }}
+              >
+                <IconClockX size={20} />
+                {t('Clean Old Data')}
               </button>
             </div>
           </div>
